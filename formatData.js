@@ -1,6 +1,6 @@
 const oanda = require('./oanda.js')
 
-let formattedData = async () => {
+let formatData = async () => {
   let priceData = []
   let label = (lastPrice, currentPrice) => {
     return currentPrice > lastPrice ? 1 : 0
@@ -27,8 +27,7 @@ let formattedData = async () => {
           1 / Number(res.data.candles[i + 2].bid.c)
         ],
         output: [
-          // label(1 / Number(res.data.candles[i + 2].bid.c), 1 / Number(res.data.candles[i + 3].bid.c))
-          1 / Number(res.data.candles[i + 3].bid.c)
+          label(1 / Number(res.data.candles[i + 2].bid.c), 1 / Number(res.data.candles[i + 3].bid.c))
         ]
       })
     }
@@ -39,5 +38,5 @@ let formattedData = async () => {
 }
 
 module.exports = {
-  formattedData
+  formatData
 }
