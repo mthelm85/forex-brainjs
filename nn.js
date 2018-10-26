@@ -1,10 +1,11 @@
+'use strict'
 const brain = require('brain.js')
 const formatData = require('./formatData.js')
 
 const net = new brain.NeuralNetwork({
   activation: 'sigmoid',
   hiddenLayers: [15], //15
-  iterations: 250000, //250000
+  iterations: 25, //250000
   learningRate: 0.15 //.15
 })
 

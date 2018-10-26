@@ -1,3 +1,4 @@
+'use strict'
 const axios = require('axios')
 const moment = require('moment')
 const creds = require('./creds')

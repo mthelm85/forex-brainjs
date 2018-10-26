@@ -1,3 +1,4 @@
+'use strict'
 const oanda = require('./oanda.js')
 
 let formatData = async () => {
