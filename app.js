@@ -46,11 +46,11 @@ const getPrices = async () => {
 train().then(trainedNetwork => {
   schedule.scheduleJob(tradeRule, async () => {
     let res = await oanda.openPositions()
-    if (res[0].long.units !== '0') {
+    if (res.length > 0 && res[0].long.units !== '0') {
       let close = await oanda.closeLongPosition('EUR_USD')
       console.log(close)
     }
-    if (res[0].short.units !== '0') {
+    if (res.length > 0 && res[0].short.units !== '0') {
       let close = await oanda.closeShortPosition('EUR_USD')
       console.log(close)
     }
