@@ -1,16 +1,23 @@
 'use strict';
-const schedule = require('node-schedule');
 const oanda = require('./oanda.js');
 const nn = require('./nn.js');
+const schedule = require('node-schedule');
 
-let rule = new schedule.RecurrenceRule()
-rule.dayOfWeek = [new scheduleRange(1, 5)]
-rule.hour = [new scheduleRange(8, 10)]
-rule.minute = 30
-let trainedNetwork
+// Set schedule to pull price data and make trades every half hour, M - F, 8:30 AM - 10:30 AM
+let tradeRule = new schedule.RecurrenceRule()
+tradeRule.dayOfWeek = [new schedule.Range(1, 5)]
+tradeRule.hour = [new schedule.Range(8, 10)]
+tradeRule.minute = [1, 31]
+
+// Set schedule to close out the final trade of the day, M - F 11:00 AM
+let closeDayRule = new schedule.RecurrenceRule()
+closeDayRule.dayOfWeek = [new schedule.Range(1, 5)]
+closeDayRule.hour = 11
+closeDayRule.minute = 0
 
 const train = async () => {
-  trainedNetwork = await nn.trainNN()
+  let trainedNetwork = await nn.trainNN()
+  return trainedNetwork
 }
 
 const getPrices = async () => {
@@ -36,9 +43,36 @@ const getPrices = async () => {
   return input
 }
 
-train().then(() => {
-  schedule.scheduleJob(rule, async () => {
+train().then(trainedNetwork => {
+  schedule.scheduleJob(tradeRule, async () => {
+    let res = await oanda.openPositions()
+    if (res[0].long.units !== '0') {
+      let close = await oanda.closeLongPosition('EUR_USD')
+      console.log(close)
+    }
+    if (res[0].short.units !== '0') {
+      let close = await oanda.closeShortPosition('EUR_USD')
+      console.log(close)
+    }
     let input = await getPrices()
-    console.log(`Prediction: ${Math.round(trainedNetwork(input))}`)
+    let prediction = Math.round(trainedNetwork(input))
+    if (prediction === 1) {
+      oanda.openShortPosition('EUR_USD')
+    } else if (prediction === 0) {
+      oanda.openLongPosition('EUR_USD')
+    } else {
+      console.log('Unable to open a position...')
+    }
+  })
+  schedule.scheduleJob(closeDayRule, async () => {
+    let res = await oanda.openPositions()
+    if (res[0].long.units !== '0') {
+      let close = await oanda.closeLongPosition('EUR_USD')
+      console.log(close)
+    }
+    if (res[0].short.units !== '0') {
+      let close = await oanda.closeShortPosition('EUR_USD')
+      console.log(close)
+    }
   })
 })
